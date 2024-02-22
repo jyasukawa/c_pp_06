@@ -1,8 +1,17 @@
 #include "ScalarConverter.hpp"
 
+// staticメンバ変数は、クラス定義内に記述しただけでは定義したことになりません。実体となる定義を別のところに書く必要がある。
+// staticメンバ変数は、オブジェクトを生成せずとも、プログラム開始時にすでに存在しています。そして、その時点でゼロ初期化される。
+// 通常のメンバ変数が、オブジェクト１つごとに別個に存在しているのに対して、staticメンバ変数は、クラスに対して１つだけしか存在しない。
+std::string	ScalarConverter::_arg;
+char		ScalarConverter::_c;
+int			ScalarConverter::_i;
+float		ScalarConverter::_f;
+double	ScalarConverter::_d;
+
 ScalarConverter::ScalarConverter(void)
 {
-	// staticなら実装するべき
+	// staticクラスなら実装しないべき。
 }
 
 // ScalarConverter::ScalarConverter(void) : _arg("default"), _c('\0'), _i(0), _f(0.0f), _d(0.0)
@@ -28,41 +37,36 @@ ScalarConverter::~ScalarConverter(void)
 	// std::cout << "ScalarConverter destructor called" << std::endl;
 }
 
-ScalarConverter::ScalarConverter(const std::string &arg) : _arg(arg), _c('\0'), _i(0), _f(0.0f), _d(0.0)
-{
-	// std::cout << "ScalarConverter string_name constructor called" << std::endl;
-}
-
 void	ScalarConverter::setChar()
 {
-	this->_c = this->_arg[0];
-	this->_i = static_cast<int>(this->_c);
-	this->_f = static_cast<float>(this->_c);
-	this->_d = static_cast<double>(this->_c);
+	_c = _arg[0];
+	_i = static_cast<int>(_c);
+	_f = static_cast<float>(_c);
+	_d = static_cast<double>(_c);
 }
 
 void	ScalarConverter::setInt()
 {
-	this->_i = std::stoi(this->_arg);//PDFよりまずstringを変換
-	this->_c = static_cast<char>(this->_i);//並び順に依存関係あり
-	this->_f = static_cast<float>(this->_i);
-	this->_d = static_cast<double>(this->_i);
+	_i = std::stoi(_arg);//PDFよりまずstringを変換
+	_c = static_cast<char>(_i);
+	_f = static_cast<float>(_i);
+	_d = static_cast<double>(_i);
 }
 
 void	ScalarConverter::setFloat()
 {
-	this->_f = std::stof(this->_arg);
-	this->_i = static_cast<int>(this->_f);
-	this->_c = static_cast<char>(this->_i);//fではなくiなのは、PDFのexplicitlyによるもの
-	this->_d = static_cast<double>(this->_f);
+	_f = std::stof(_arg);
+	_i = static_cast<int>(_f);//並び順に注意
+	_c = static_cast<char>(_i);//fではなくiなのは、ft_print_messageでオーバーフローをチェックするため
+	_d = static_cast<double>(_f);
 }
 
 void	ScalarConverter::setDouble()
 {
-	this->_d = std::stod(this->_arg);
-	this->_i = static_cast<int>(this->_d);
-	this->_c = static_cast<char>(this->_i);
-	this->_f = static_cast<float>(this->_d);
+	_d = std::stod(_arg);
+	_i = static_cast<int>(_d);
+	_c = static_cast<char>(_i);
+	_f = static_cast<float>(_d);
 }
 
 static void	ft_check_arg(const std::string &str)
@@ -73,10 +77,10 @@ static void	ft_check_arg(const std::string &str)
 	{
 		if(str == type[i] || str == (type[i] + "f"))
 		{
-			std::cout << "Char: " << "impossible" << std::endl;
-			std::cout << "Int: " << "impossible" << std::endl;
-			std::cout << "Float: " << type[i] + "f" << std::endl;
-			std::cout << "Double: " << type[i] << std::endl;
+			std::cout << "char: " << "impossible" << std::endl;
+			std::cout << "int: " << "impossible" << std::endl;
+			std::cout << "float: " << type[i] + "f" << std::endl;
+			std::cout << "double: " << type[i] << std::endl;
 			std::exit(EXIT_SUCCESS);
 		}
 	}
@@ -171,41 +175,42 @@ static bool	ft_isDouble(const std::string &str)
 
 void	ScalarConverter::ft_print_message()
 {
-	if (this->_i < -128 || this->_i > 127)
-		std::cout << "Char: " << "impossible" << std::endl;
-	else if (this->_i < 32 || this->_i == 127)
-		std::cout << "Char: " << "Non displayable" << std::endl;
+	if (_i < -128 || _i > 127)
+		std::cout << "char: " << "impossible" << std::endl;
+	else if (_i < 32 || _i == 127)
+		std::cout << "char: " << "Non displayable" << std::endl;
 	else
-		std::cout << "Char: " << "'" << this->_c << "'" << std::endl;
-	if (this->_f < INT_MIN || this->_f > INT_MAX || this->_d < INT_MIN || this->_d > INT_MAX)
-		std::cout << "Int: " << "impossible" << std::endl;
+		std::cout << "char: " << "'" << _c << "'" << std::endl;
+	if (_f < INT_MIN || _f > INT_MAX || _d < INT_MIN || _d > INT_MAX)
+		std::cout << "int: " << "impossible" << std::endl;
 	else
-		std::cout << "Int: " << this->_i << std::endl;
+		std::cout << "int: " << _i << std::endl;
 	
-	if (this->_d < std::numeric_limits<float>::lowest() || this->_d > std::numeric_limits<float>::max())//FLT_MINだとダメ
-		std::cout << "Float: " << "impossible" << std::endl;
+	if (_d < std::numeric_limits<float>::lowest() || _d > std::numeric_limits<float>::max())//FLT_MINだとダメ
+		std::cout << "float: " << "impossible" << std::endl;
 	else
-		std::cout << "Float: " << this->_f;
-	if (this->_f == this->_i)
+		std::cout << "float: " << _f;
+	if (_f == _i)
 		std::cout << ".0";
 	std::cout << "f" << std::endl;
 	
-	std::cout << "Double:	" << this->_d;
-	if (this->_d == this->_i)
+	std::cout << "double:	" << _d;
+	if (_d == _i)
 		std::cout << ".0";
 	std::cout << std::endl;
 }
 
-void	ScalarConverter::ft_convert()
+void	ScalarConverter::convert(const std::string &arg)
 {
-	ft_check_arg(this->_arg);
-	if (this->_arg.length() == 1)
-		(this->_arg[0] >= '0' && this->_arg[0] <= '9') ? setInt() : setChar();
-	else if (this->_arg.back() == 'f' && ft_isFloat(this->_arg) == true)
+	_arg = arg;
+	ft_check_arg(_arg);
+	if (_arg.length() == 1)
+		(_arg[0] >= '0' && _arg[0] <= '9') ? setInt() : setChar();
+	else if (_arg.back() == 'f' && ft_isFloat(_arg) == true)
 		setFloat();
-	else if (this->_arg.find('.') != std::string::npos && ft_isDouble(this->_arg) == true)
+	else if (_arg.find('.') != std::string::npos && ft_isDouble(_arg) == true)
 		setDouble();
-	else if (ft_isInt(this->_arg) == true)
+	else if (ft_isInt(_arg) == true)
 		setInt();
 	ft_print_message();
 }

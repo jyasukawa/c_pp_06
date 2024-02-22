@@ -6,7 +6,7 @@
 class Base
 {
 	public:
-		virtual ~Base(void);
+		virtual ~Base(void);//dynamic_castを使う条件、対象のクラス階層で少なくとも1つ以上の仮想関数が存在する必要があります。
 };
 
 Base	*generate(void);
